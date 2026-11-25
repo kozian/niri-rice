@@ -1,0 +1,11 @@
+[Unit]
+Description=MacBook niri desktop component (%i)
+PartOf=niri.service
+After=niri.service
+Requisite=niri.service
+
+[Service]
+Slice=session.slice
+ExecStart=%h/.local/bin/rice-service %i
+Restart=on-failure
+RestartSec=2

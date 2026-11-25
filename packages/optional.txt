@@ -1,0 +1,2 @@
+# --screencast. GNOME portal implements the PipeWire screencast API for niri.
+xdg-desktop-portal-gnome

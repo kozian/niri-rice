@@ -1,8 +1,7 @@
-# wpaperd — cycles the active theme's wallpaper set with a fade transition.
-# theme-toggle rewrites the `path` line below; wpaperd hot-reloads it.
+# The installer writes the absolute path to the current theme's wallpapers.
 [any]
-path = "/home/justin/Pictures/wallpapers/tokyonight"
+path = "@WALLPAPERS@"
 duration = "15m"
 sorting = "random"
-mode = "stretch"
+mode = "fit"
 transition-time = 800

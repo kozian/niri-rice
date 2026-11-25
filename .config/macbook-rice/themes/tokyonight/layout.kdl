@@ -1,0 +1,18 @@
+layout {
+    gaps 10
+    default-column-width { proportion 0.5; }
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+    focus-ring {
+        width 2
+        active-gradient from="#7aa2f7" to="#bb9af7" angle=45
+        inactive-color "#414868"
+    }
+    struts {
+        left 2
+        right 2
+    }
+}

@@ -51,27 +51,19 @@
             "actions": [
                 {
                     "label": "󰌾",
-                    "command": "loginctl lock-session"
+                    "command": "systemctl --user start macbook-rice-lock.service"
                 },
                 {
                     "label": "󰄄",
-                    "command": "grim -g \"$(slurp)\" - | wl-copy"
+                    "command": "niri msg action screenshot"
                 },
                 {
                     "label": "󰔎",
-                    "command": "~/.local/bin/theme-toggle"
-                },
-                {
-                    "label": "󰜉",
-                    "command": "hyprctl reload"
-                },
-                {
-                    "label": "󰑓",
-                    "command": "systemctl reboot"
+                    "command": "~/.local/bin/rice-theme"
                 },
                 {
                     "label": "󰐥",
-                    "command": "systemctl poweroff"
+                    "command": "~/.local/bin/rice-power"
                 }
             ]
         }

@@ -1,0 +1,7 @@
+(gtk_accel_path "<Actions>/ThunarActionManager/copy" "<Super>c")
+(gtk_accel_path "<Actions>/ThunarActionManager/cut" "<Super>x")
+(gtk_accel_path "<Actions>/ThunarActionManager/undo" "<Super>z")
+(gtk_accel_path "<Actions>/ThunarActionManager/paste" "<Super>v")
+(gtk_accel_path "<Actions>/ThunarWindow/close-tab" "<Super>w")
+(gtk_accel_path "<Actions>/ThunarWindow/new-tab" "<Super>t")
+(gtk_accel_path "<Actions>/ThunarWindow/preferences" "<Super>comma")

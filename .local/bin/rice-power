@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+chosen=$(printf '%s\n' '  Lock' '  Log out' '  Reboot' '  Shut down' |
+    fuzzel --dmenu --only-match --cache=/dev/null --prompt='Power: ' --lines=4 --width=25) || exit 0
+case "$chosen" in
+    '  Lock') exec systemctl --user start macbook-rice-lock.service ;;
+    '  Log out') exec niri msg action quit ;;
+    '  Reboot'|'  Shut down')
+        answer=$(printf '%s\n' Cancel "$chosen" |
+            fuzzel --dmenu --only-match --cache=/dev/null --prompt='Confirm: ' --lines=2 --width=25) || exit 0
+        [[ $answer == "$chosen" ]] || exit 0
+        if [[ $chosen == '  Reboot' ]]; then
+            exec systemctl reboot
+        fi
+        exec systemctl poweroff
+        ;;
+esac

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+history=$(cliphist list)
+[[ -n $history ]] || exit 0
+choice=$(printf '%s\n' "$history" |
+    fuzzel --dmenu --only-match --cache=/dev/null --with-nth=2 --prompt='Clipboard: ') || exit 0
+[[ $choice == *$'\t'* ]] || exit 0
+printf '%s\n' "$choice" | cliphist decode | wl-copy

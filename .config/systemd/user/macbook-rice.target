@@ -1,0 +1,9 @@
+[Unit]
+Description=MacBook niri desktop services
+DefaultDependencies=no
+PartOf=niri.service
+After=niri.service
+Wants=macbook-rice@waybar.service swaync.service
+Wants=macbook-rice@wpaperd.service macbook-rice@swayidle.service
+Wants=macbook-rice@clipboard-text.service macbook-rice@clipboard-image.service
+Wants=macbook-rice@polkit.service

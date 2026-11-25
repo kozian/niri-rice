@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# NetworkManager's cached SSID avoids the Broadcom nl80211 issue in Waybar.
+set -eu
+export LC_ALL=C
+
+render() {
+    jq -cn --arg text "$1" --arg tooltip "$2" --arg class "$3" \
+        '{text: $text, tooltip: $tooltip, class: $class}'
+}
+
+devices=$(nmcli -t -e no -f DEVICE,TYPE,STATE device status 2>/dev/null) || {
+    render '󰤬  off' 'NetworkManager unavailable' disconnected
+    exit
+}
+wired=$(awk -F: '$2 == "ethernet" && $3 == "connected" { print $1; exit }' <<< "$devices")
+if [[ -n $wired ]]; then
+    addr=$(nmcli -g IP4.ADDRESS device show "$wired" | head -n 1)
+    render '󰈀  wired' "$wired ${addr:+— $addr}" connected
+    exit
+fi
+
+wifi=$(awk -F: '$2 == "wifi" && $3 == "connected" { print $1; exit }' <<< "$devices")
+if [[ -n $wifi ]]; then
+    while IFS= read -r row; do
+        # With no nmcli escaping, use the first and last separators to preserve colons in SSIDs.
+        [[ $row == yes:*:* ]] || continue
+        fields=${row#yes:}
+        ssid=${fields%:*}
+        signal=${fields##*:}
+        icon=󰤟
+        if [[ $signal =~ ^[0-9]+$ ]]; then
+            if (( signal >= 75 )); then icon=󰤨
+            elif (( signal >= 50 )); then icon=󰤥
+            elif (( signal >= 25 )); then icon=󰤢
+            fi
+        fi
+        render "$icon  ${ssid:0:18}" "$ssid — ${signal}%" connected
+        exit
+    done < <(nmcli -t -e no -f ACTIVE,SSID,SIGNAL device wifi list ifname "$wifi" --rescan no 2>/dev/null)
+    render '󰤨  Wi-Fi' "$wifi" connected
+    exit
+fi
+
+render '󰤬  off' Disconnected disconnected

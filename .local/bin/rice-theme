@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+config=${XDG_CONFIG_HOME:-$HOME/.config}
+themes=$config/macbook-rice/themes
+[[ -d $themes ]] || exit 1
+exec 9>"${XDG_RUNTIME_DIR:?}/macbook-rice-theme.lock"
+flock -n 9 || exit 0
+exec 8>"$XDG_RUNTIME_DIR/macbook-rice-install.lock"
+flock -sn 8 || exit 0
+
+case "$(readlink "$themes/current")" in
+    tokyonight) next=catppuccin ;;
+    catppuccin) next=tokyonight ;;
+    *) printf 'Unknown rice theme\n' >&2; exit 1 ;;
+esac
+
+staging=$(mktemp -d "$themes/.switch.XXXXXXXX")
+trap 'rm -r -- "$staging"' EXIT
+ln -s "$next" "$staging/current"
+mv -Tf -- "$staging/current" "$themes/current"
+
+if [[ -z ${NIRI_SOCKET:-} ]]; then
+    printf 'Theme selected for the next niri session: %s\n' "$next"
+    exit
+fi
+
+# Apply all updates even if one application is unavailable.
+status=0
+niri msg action load-config-file || status=1
+systemctl --user kill --kill-whom=main --signal=USR2 macbook-rice@waybar.service || status=1
+swaync-client --skip-wait --reload-css || status=1
+systemctl --user restart macbook-rice@wpaperd.service || status=1
+exit "$status"

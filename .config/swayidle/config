@@ -1,0 +1,5 @@
+timeout 600 'systemctl --user start macbook-rice-lock.service'
+timeout 660 'systemctl --user start macbook-rice-lock.service && niri msg action power-off-monitors' resume 'niri msg action power-on-monitors'
+lock 'systemctl --user start macbook-rice-lock.service'
+before-sleep 'systemctl --user start macbook-rice-lock.service'
+after-resume 'niri msg action power-on-monitors'

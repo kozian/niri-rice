@@ -1,0 +1,11 @@
+[Unit]
+Description=MacBook niri screen lock
+PartOf=niri.service
+After=niri.service
+Requisite=niri.service
+
+[Service]
+Slice=session.slice
+Type=forking
+ExecStart=/usr/bin/swaylock --daemonize
+TimeoutStartSec=5

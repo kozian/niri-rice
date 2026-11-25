@@ -1,77 +1,159 @@
-# hyprland-rice
+# macbook-niri-rice
 
-Omarchy-style Hyprland rice (Tokyo Night / Catppuccin), built on Arch Linux for
-a MacBook10,1 (12-inch 2017, retina panel @ 2x scale). Stock repos only — no AUR.
+Рабочее окружение Arch Linux для 12-дюймового MacBook 2017 (MacBook10,1).
+Целевая машина оснащена Intel Kaby Lake, Intel HD Graphics 615 и дисплеем
+2304×1440. niri берёт предпочтительный режим встроенного eDP-1 и
+устанавливает масштаб 2× (1152×720 логических пикселей). Внешние выходы
+используют автоматические настройки niri.
 
-![theme](.config/themes/tokyonight/wallpaper.png)
+![Обои Tokyo Night из исходного rice](wallpapers/tokyonight/g1-mesh.png)
 
-## What's here
+## Базовая система
 
-| Path | Purpose |
-|------|---------|
-| `.config/hypr/` | Hyprland, hyprlock, hypridle, color palette |
-| `.config/waybar/` | Top bar (pill modules, swaync bell, battery, network) |
-| `.config/wofi/` | App launcher + dedicated power-menu styling |
-| `.config/swaync/` | Notification daemon + slide-out control center |
-| `.config/wpaperd/` | Animated wallpaper cycler (per-theme sets, fades) |
-| `.config/alacritty/` | Terminal theme |
-| `.config/cava/` | Audio visualizer colors |
-| `.config/themes/` | Tokyo Night ⇄ Catppuccin swap sets |
-| `.local/bin/theme-toggle` | One-key full-rice theme switch (Super+Shift+T) |
-| `.local/bin/powermenu` | Graphical power menu (wofi) |
-| `.local/bin/term-exec` | Launcher shim to run TUI apps in alacritty |
-| `.local/bin/battery-status` | waybar custom battery module (instant plug/unplug via udev) |
-| `.local/bin/volume-ctl` | volume keys (F11/F12) with audible click feedback |
-| `.local/bin/keybinds` | on-screen keybind cheatsheet (Super+/) |
-| `home/.bash_profile` | Auto-starts Hyprland on tty1 via `start-hyprland` |
-| `wallpapers/` | Wallpaper sets → installed to `~/Pictures/wallpapers` |
+Arch Linux x86_64 с systemd, NetworkManager, PipeWire, PipeWire-Pulse,
+WirePlumber и доступом обычного пользователя к sudo. Перед установкой
+подключитесь к интернету через Wi-Fi или USB-модем iPhone. Установщик
+ожидает работающий пользовательский systemd и доступ к зеркалам `core`
+и `extra`. Для автоматического запуска нужен Bash как оболочка входа и
+обычный getty на TTY1 с запросом логина и пароля.
 
-## Install
+Тип загрузчика, ext4 и zram остаются частью базовой установки. Перед первым
+испытанием сна и закрытия крышки прочтите [аппаратные заметки](docs/HARDWARE.md).
+
+## Первая установка
+
+Выполните из локальной TTY от имени пользователя будущего сеанса.
 
 ```sh
-git clone https://github.com/juicecultus/hyprland-rice
-cd hyprland-rice
-./install.sh                         # configs + scripts + wallpapers
-INSTALL_BASH_PROFILE=1 ./install.sh  # also install the tty1 auto-launch
+git clone <repository-url> macbook-niri-rice
+cd macbook-niri-rice
+./install.sh --dry-run
+./install.sh
+./check.sh
 ```
 
-`install.sh` prints the package list and repoints the wallpaper path at your
-`$HOME`. Fonts: install a Nerd Font (`ttf-cascadia-code-nerd`) so the glyphs in
-waybar / swaync / the power menu render.
+Подтвердите транзакцию pacman. Она обновляет систему целиком и ставит
+недостающие пакеты. Если pacman предлагает заменить или удалить уже
+установленный пакет, проверьте причину до подтверждения. На нативной
+установке с PipeWire используется `pipewire-jack`. Установленный
+`jack2` сохраняется как поставщик JACK для Waybar.
 
-### Auto-start on login (no display manager)
+Выйдите из текстового входа и снова авторизуйтесь на TTY1. В других
+локальных TTY доступен ручной запуск командой `niri-session`.
+Для проверки фоновых процессов и IPC повторите `./check.sh` из Foot.
+Если обновилось ядро, запланируйте обычную перезагрузку отдельно.
 
-`home/.bash_profile` `exec`s **`start-hyprland`** (Hyprland 0.55+'s watchdog
-launcher — launching the bare `Hyprland` binary prints a "highly advised
-against" warning) on VT1. Pair it with getty autologin:
+### Существующее окружение
+
+Установленные пакеты Hyprland, Mako и их аналоги могут оставаться в
+системе. Установщик выявляет известные активные и включённые
+пользовательские службы, конкурирующие записи XDG Autostart и прямые
+запуски композитора из профиля Bash. Завершите существующий графический
+сеанс и устраните конкретные конфликты, о которых сообщает установщик.
+Управляемые конфиги должны лежать в обычных каталогах. Для существующих
+каталогов-ссылок с dotfiles сначала выберите место для установки, чтобы
+избежать записи в другой рабочий клон.
+
+- Для службы, которую вы ранее включили вручную, например Mako,
+  выполните `systemctl --user disable --now mako.service`.
+- Перенесите конфликтующий пользовательский `.desktop` из
+  `~/.config/autostart` или ограничьте его своим прежним окружением
+  через `NotShowIn=niri;`. Для системной записи используйте
+  пользовательское переопределение с тем же именем.
+- Перед редактированием прежнего блока `exec start-hyprland` или
+  `exec niri-session` сохраните копию startup-файла. Если в нём заданы
+  `XDG_CURRENT_DESKTOP` или `XDG_SESSION_TYPE` для старого сеанса,
+  уберите их вместе с блоком. Проверьте также drop-in и зависимости
+  `niri.service`, если niri уже запускал панель или агента отдельной службой.
+- Если старый rice включал `agetty --autologin` или display manager,
+  отключите его самостоятельно перед настройкой TTY1. Для ручного
+  запуска используйте `./install.sh --no-autostart`.
+
+### Состав
+
+| Назначение | Компонент |
+|---|---|
+| Сеанс и окна | niri, запуск через `niri-session` и пользовательский systemd |
+| Панель и уведомления | Waybar с niri IPC и WirePlumber, SwayNC с панелью MPRIS |
+| Запуск и приложения | Fuzzel, Foot, Thunar с GVfs, Firefox в Wayland |
+| Экран | Swaylock, Swayidle, обои wpaperd, скриншоты niri |
+| Буфер | wl-clipboard и cliphist для текста и изображений |
+| Звук, экран, медиа | wpctl, brightnessctl, playerctl |
+| Диалоги и авторизация | GTK portal и GTK-агент polkit-gnome |
+| Оформление | Tokyo Night, Catppuccin, CaskaydiaCove Nerd Font, Noto Sans/Emoji, Adwaita и Capitaine |
+
+Пакеты и краткое назначение перечислены в [обязательном списке](packages/required.txt)
+и [опциональном списке](packages/optional.txt). Зависимости ставит pacman
+из настроенных репозиториев Arch. Профиль работает без AUR, сервера X11
+и XWayland. GTK и Firefox могут подтягивать клиентские библиотеки X11.
+
+Для демонстрации экрана выполните `./install.sh --screencast` из TTY
+и начните новый сеанс. Arch подтягивает Nautilus вместе с GNOME portal.
+Диалог файлов по-прежнему обслуживает GTK, файловым менеджером остаётся
+Thunar. Для проверки трансляции используйте Firefox. [Пакет Arch и зависимости](https://archlinux.org/packages/extra/x86_64/xdg-desktop-portal-gnome/)
+
+### Управление
+
+- [Горячие клавиши](docs/KEYBINDINGS.md). Клавиша Command соответствует Super.
+  `Super+/` открывает встроенную подсказку.
+- `Super+Shift+T` переключает тему. Новые окна Foot получают новую
+  палитру. Уже открытые продолжают работу с предыдущей палитрой.
+- `Option+Space` запускает Fuzzel, `Command+Space` переключает EN/RU,
+  а `Command+\` показывает или скрывает Waybar. Список раскладок
+  задаётся в `input.keyboard.xkb.layout` конфигурации niri.
+- Для отключения автоматического запуска создайте флаг
+  `touch "${XDG_CONFIG_HOME:-$HOME/.config}/macbook-rice/no-tty-autostart"`.
+  Повторная установка уважает флаг. Для включения удалите его и повторите
+  `./install.sh`, если ранее использовали `--no-autostart`.
+- Cliphist хранит историю локально и может сохранять секреты из буфера.
+  `cliphist wipe` очищает историю. Чтобы отключить запись, остановите
+  оба сервиса `macbook-rice@clipboard-text.service` и
+  `macbook-rice@clipboard-image.service` и уберите их из
+  `Wants=` в пользовательском `macbook-rice.target`.
+
+### Обновление и восстановление
+
+На TTY завершите графический сеанс, обновите локальный клон
+(`git pull --ff-only`), просмотрите `./install.sh --dry-run` и снова
+выполните `./install.sh` и `./check.sh`. Изменённые управляемые файлы
+заменяются версиями из клона. Если вы настраивали раскладку, панель или
+GTK, перенесите свои изменения из резервной копии.
+
+Каждый запуск с изменениями печатает каталог
+`${XDG_STATE_HOME:-$HOME/.local/state}/macbook-rice/backups/<timestamp>`.
+В `manifest.tsv` каждая строка хранит действие, относительный путь и
+абсолютный путь назначения. Для строки `REPLACE` копия исходного файла
+или ссылки лежит в `before/<относительный путь>`. Данные, режим доступа
+и метаданные исходного файла копируются через `cp -a`.
+
+Из TTY, вне графического сеанса, восстановите нужные записи `REPLACE`.
+Например, для исходного `.bash_profile` выполните следующую команду
+с каталогом конкретного запуска в переменной `backup`.
 
 ```sh
-sudo systemctl edit getty@tty1
-# [Service]
-# ExecStart=
-# ExecStart=-/usr/bin/agetty --autologin <user> --noclear %I $TERM
+cp -aT --remove-destination -- "$backup/before/home/.bash_profile" "$HOME/.bash_profile"
 ```
 
-## Keybinds (Super = ⌘)
+Записи `CREATE` отмечают добавленные файлы. Для полного отката просмотрите
+их и перенесите добавленные файлы из путей назначения, сохранив свои
+правки. Затем выполните `systemctl --user daemon-reload`. Для отката
+нескольких установок разбирайте манифесты от нового к старому. Резервные
+копии dotfiles не включают пакеты и их состояние в pacman.
 
-| Key | Action |
-|-----|--------|
-| `Return` | terminal · `Space` launcher · `B` browser · `E` files |
-| `Q` close · `F` fullscreen · `V` float · `L` lock |
-| `N` notifications · `Shift+N` do-not-disturb |
-| `Shift+S` region screenshot · `Shift+A` annotate (satty) · `Shift+C` color picker |
-| `Shift+T` toggle Tokyo Night ⇄ Catppuccin |
-| `/` on-screen keybind cheatsheet |
+### Ограничения и происхождение
 
-## Notes
+Сеанс блокируется через 10 минут бездействия и выключает экран через
+11 минут. Автоматический suspend по таймеру и пункт питания Suspend
+отключены до проверки MacBook. Действие при закрытии крышки определяется
+действующей системной политикой logind и может запустить suspend само.
 
-- Display is scaled `2x` (`monitor = eDP-1, preferred, auto, 2`).
-- The battery indicator is a custom module (`battery-status`) so it keeps the
-  exact Font Awesome glyphs. For *instant* plug/unplug reaction it relies on a
-  `power_supply` udev rule that pokes waybar with `SIGRTMIN+8`; that rule ships
-  in **[macbook-arch-system](https://github.com/juicecultus/macbook-arch-system)**
-  (`99-waybar-battery.rules`). Without it the module still updates on its 30s
-  poll fallback.
-- System-level MacBook tweaks (touchpad palm rejection, power-profile
-  auto-switch, ambient brightness) live in a separate repo:
-  **[macbook-arch-system](https://github.com/juicecultus/macbook-arch-system)**.
+Проверка реального eDP, яркости, PolicyKit, сна и других устройств
+выполняется по [чеклисту](CHECKLIST.md). Совместимость оборудования
+и порядок аппаратных испытаний описаны в [HARDWARE.md](docs/HARDWARE.md).
+
+Конфигурация адаптирована из работы Justinian (juicecultus)
+и сохраняет её обои, палитры и визуальную основу панели и уведомлений.
+У исходника не обнаружена лицензия. Перед публикацией или передачей
+унаследованных материалов нужно проверить разрешения и происхождение
+обоев. [Исходный hyprland-rice](https://github.com/juicecultus/hyprland-rice) ·
+[Аудит миграции](docs/MIGRATION.md)

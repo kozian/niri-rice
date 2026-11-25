@@ -1,0 +1,33 @@
+# Wayland session, app launcher, terminal, notifications
+niri
+waybar
+# JACK provider needed by the Arch Waybar build. Existing jack2 is accepted.
+pipewire-jack
+fuzzel
+foot
+swaync
+# Applications and local trash / removable volumes in Thunar
+thunar
+gvfs
+firefox
+# Lock, idle, wallpaper and clipboard
+swaylock
+swayidle
+wpaperd
+wl-clipboard
+cliphist
+# MIME inference for images restored by wl-copy
+xdg-utils
+# Laptop controls and Waybar network JSON
+brightnessctl
+playerctl
+jq
+# Explicit portal backend and policy agent
+xdg-desktop-portal-gtk
+polkit-gnome
+# UI text, emoji, panel glyphs, application icons and cursor
+ttf-cascadia-code-nerd
+noto-fonts
+noto-fonts-emoji
+adwaita-icon-theme
+capitaine-cursors

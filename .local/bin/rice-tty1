@@ -1,0 +1,11 @@
+# Sourced once from Bash's login startup file.
+if [[ $- == *i* && ${XDG_VTNR:-} == 1 && -t 0 &&
+      -z ${SSH_CONNECTION:-}${SSH_CLIENT:-}${SSH_TTY:-} &&
+      -z ${WAYLAND_DISPLAY:-}${DISPLAY:-}${NIRI_SOCKET:-}${MACBOOK_RICE_TTY1_STARTED:-} &&
+      ! -e "${XDG_CONFIG_HOME:-$HOME/.config}/macbook-rice/no-tty-autostart" &&
+      $(tty) == /dev/tty1 ]] &&
+   command -v niri-session >/dev/null &&
+   ! systemctl --user --quiet is-active niri.service; then
+    export MACBOOK_RICE_TTY1_STARTED=1
+    exec niri-session
+fi

@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -eu
+
+config=${XDG_CONFIG_HOME:-$HOME/.config}
+case "${1:-}" in
+    waybar) exec waybar -c "$config/waybar/config.jsonc" -s "$config/waybar/style.css" ;;
+    wpaperd) exec wpaperd ;;
+    swayidle) exec swayidle -w -C "$config/swayidle/config" ;;
+    clipboard-text|clipboard-image) exec wl-paste --type "${1#clipboard-}" --watch cliphist store ;;
+    polkit) exec /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 ;;
+    *) printf 'Unknown rice component: %s\n' "${1:-}" >&2; exit 2 ;;
+esac
